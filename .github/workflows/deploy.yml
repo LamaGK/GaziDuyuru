@@ -1,0 +1,36 @@
+name: Duyuruları Guncelle ve Yayınla
+
+on:
+  schedule:
+    - cron: '*/30 * * * *' # Her 30 dakikada bir çalışır
+  workflow_dispatch: # İstediğin zaman elle tetikleme butonu
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # Repoya yeni data.json pushlamak için izin
+
+    steps:
+      - name: Repoyu Çek
+        uses: actions/checkout@v3
+
+      - name: Python Kur
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+
+      - name: Kütüphaneleri Yükle
+        run: |
+          pip install requests beautifulsoup4
+
+      - name: Scraper'ı Çalıştır
+        run: python scraper.py
+
+      - name: Değişiklikleri GitHub'a Pushla
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.name "github-actions[bot]@users.noreply.github.com"
+          git add data.json
+          git commit -m "Auto update duyurular [skip ci]" || exit 0
+          git push
